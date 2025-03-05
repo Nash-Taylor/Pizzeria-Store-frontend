@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Container,
   Paper,
@@ -23,10 +24,13 @@ import { Ingredient, PizzaSelection, ValidationResponse } from '../types/types';
 import { apiService } from '../services/api';
 import InfoIcon from '@mui/icons-material/Info';
 import customizePizzaBg from '../assets/customize_pizzabg.png';
+import CloseIcon from '@mui/icons-material/Close';
+import Sidebar from './Sidebar';
 
 const steps = ['Choose Crust', 'Choose Sauce', 'Choose Toppings'];
 
 const PizzaBuilder: React.FC = () => {
+  const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(0);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,6 +43,7 @@ const PizzaBuilder: React.FC = () => {
   const [validation, setValidation] = useState<ValidationResponse | null>(null);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const loadIngredients = async () => {
@@ -100,7 +105,11 @@ const PizzaBuilder: React.FC = () => {
   };
 
   const handleBack = () => {
-    setActiveStep((prev) => prev - 1);
+    if (activeStep === 0) {
+      navigate('/');
+    } else {
+      setActiveStep((prev) => prev - 1);
+    }
   };
 
   const isStepValid = () => {
@@ -193,6 +202,7 @@ const PizzaBuilder: React.FC = () => {
   return (
     <Box sx={{ 
       minHeight: '100vh',
+      width: '100vw',
       bgcolor: '#f8f9fa',
       py: 4,
       px: 2,
@@ -202,6 +212,8 @@ const PizzaBuilder: React.FC = () => {
       backgroundPosition: 'center',
       backgroundAttachment: 'fixed'
     }}>
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(!sidebarOpen)} />
+      
       <Paper elevation={3} sx={{ 
         p: 4, 
         mx: 'auto',
@@ -233,7 +245,7 @@ const PizzaBuilder: React.FC = () => {
             Build Your Perfect Pizza
           </Typography>
           <IconButton
-            onClick={() => setShowInfo(prev => !prev)}
+            onClick={() => navigate('/')}
             color="primary"
             sx={{ 
               ml: 2,
@@ -243,61 +255,19 @@ const PizzaBuilder: React.FC = () => {
               }
             }}
           >
-            <InfoIcon />
+            <CloseIcon />
           </IconButton>
         </Box>
         
         {loading ? (
-          <Box display="flex" justifyContent="center" alignItems="center" flexGrow={1}>
-            <CircularProgress size={60} />
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1 }}>
+            <CircularProgress />
           </Box>
         ) : error ? (
-          <Alert severity="error" sx={{ mt: 2 }}>
-            {error}
-          </Alert>
-        ) : orderSuccess ? (
-          <Alert severity="success" sx={{ mt: 2 }}>
-            Your order has been successfully placed! Start a new order to build another pizza.
-          </Alert>
+          <Alert severity="error">{error}</Alert>
         ) : (
           <>
-            <Dialog
-              open={showInfo}
-              onClose={() => setShowInfo(false)}
-              maxWidth="sm"
-              fullWidth
-              disablePortal
-              keepMounted
-              aria-labelledby="pizza-info-dialog-title"
-              aria-describedby="pizza-info-dialog-description"
-            >
-              <DialogTitle id="pizza-info-dialog-title">Pizza Building Guidelines</DialogTitle>
-              <DialogContent id="pizza-info-dialog-description">
-                <Typography variant="subtitle1" gutterBottom>
-                  <ul style={{ marginBottom: 0, paddingLeft: '1.5rem' }}>
-                    <li>You can select up to 2 sauces for your pizza</li>
-                    <li>A minimum of 2 toppings is required</li>
-                  </ul>
-                </Typography>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={() => setShowInfo(false)}>Close</Button>
-              </DialogActions>
-            </Dialog>
-
-            <Stepper 
-              activeStep={activeStep} 
-              sx={{ 
-                pt: 3, 
-                pb: 5,
-                '& .MuiStepLabel-root .Mui-completed': {
-                  color: 'success.main',
-                },
-                '& .MuiStepLabel-root .Mui-active': {
-                  color: 'primary.main',
-                }
-              }}
-            >
+            <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
               {steps.map((label) => (
                 <Step key={label}>
                   <StepLabel>{label}</StepLabel>
@@ -305,44 +275,83 @@ const PizzaBuilder: React.FC = () => {
               ))}
             </Stepper>
 
-            <Box sx={{ flexGrow: 1 }}>
-              {getStepContent(activeStep)}
-            </Box>
+            {getStepContent(activeStep)}
 
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              mt: 4,
-              pt: 4,
-              borderTop: '1px solid #eee'
-            }}>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
               <Button
-                variant="outlined"
-                onClick={handleBack}
                 disabled={activeStep === 0}
-                sx={{ px: 4 }}
+                onClick={handleBack}
+                sx={{ mr: 1 }}
               >
                 Back
               </Button>
-              <Box>
-                {validation && validation.totalPrice !== null && (
-                  <Typography variant="h5" sx={{ mr: 3, display: 'inline', fontWeight: 'bold' }}>
-                    Total: ${Number(validation.totalPrice).toFixed(2)}
-                  </Typography>
-                )}
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleNext}
-                  disabled={!isStepValid()}
-                  sx={{ px: 4 }}
-                >
-                  {activeStep === steps.length - 1 ? 'Place Order' : 'Next'}
-                </Button>
-              </Box>
+              <Button
+                variant="contained"
+                onClick={handleNext}
+                disabled={!isStepValid()}
+              >
+                {activeStep === steps.length - 1 ? 'Place Order' : 'Next'}
+              </Button>
             </Box>
           </>
         )}
+
+        {/* Rules Dialog */}
+        <Dialog
+          open={showInfo}
+          onClose={() => setShowInfo(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Pizza Building Rules</DialogTitle>
+          <DialogContent>
+            <Typography variant="body1" paragraph>
+              Follow these rules to create your perfect pizza:
+            </Typography>
+            <Box component="ul" sx={{ pl: 2 }}>
+              <Typography component="li" variant="body1" paragraph>
+                <strong>Crust:</strong> Select one crust type for your pizza base.
+              </Typography>
+              <Typography component="li" variant="body1" paragraph>
+                <strong>Sauce:</strong> Choose up to 2 different sauces. You can select Regular or Extra portions for each sauce type.
+              </Typography>
+              <Typography component="li" variant="body1" paragraph>
+                <strong>Toppings:</strong> Select at least 2 toppings. You can choose Regular or Extra portions for each topping type.
+              </Typography>
+              <Typography component="li" variant="body1" paragraph>
+                <strong>Portions:</strong> Regular portions are standard servings, while Extra portions provide more generous amounts.
+              </Typography>
+              <Typography component="li" variant="body1" paragraph>
+                <strong>Validation:</strong> Your pizza will be validated before order placement to ensure it meets all requirements.
+              </Typography>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowInfo(false)} color="primary">
+              Got it!
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Success Dialog */}
+        <Dialog
+          open={orderSuccess}
+          onClose={() => setOrderSuccess(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Order Placed Successfully!</DialogTitle>
+          <DialogContent>
+            <Typography variant="body1">
+              Your pizza order has been placed successfully. Thank you for choosing La Pizzeria Club!
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOrderSuccess(false)} color="primary">
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Paper>
     </Box>
   );

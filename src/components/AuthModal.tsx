@@ -132,9 +132,13 @@ const AuthModal = ({ open, onClose }: AuthModalProps) => {
           position: 'relative',
         }
       }}
+      aria-labelledby="auth-modal-title"
+      aria-describedby="auth-modal-description"
+      keepMounted={false}
     >
       <IconButton
         onClick={onClose}
+        aria-label="Close"
         sx={{
           position: 'absolute',
           right: 8,
@@ -148,11 +152,15 @@ const AuthModal = ({ open, onClose }: AuthModalProps) => {
         <CloseIcon />
       </IconButton>
 
-      <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>
+      <DialogTitle 
+        id="auth-modal-title"
+        sx={{ textAlign: 'center', pb: 0 }}
+      >
         <Tabs
           value={authTab}
           onChange={handleAuthTabChange}
           centered
+          aria-label="Authentication tabs"
           sx={{
             '& .MuiTabs-indicator': {
               backgroundColor: '#e65100',
@@ -162,15 +170,22 @@ const AuthModal = ({ open, onClose }: AuthModalProps) => {
             },
           }}
         >
-          <Tab label="Login" />
-          <Tab label="Sign Up" />
+          <Tab 
+            label="Login" 
+            aria-label="Login tab"
+          />
+          <Tab 
+            label="Sign Up" 
+            aria-label="Sign up tab"
+          />
         </Tabs>
       </DialogTitle>
 
-      <DialogContent>
+      <DialogContent id="auth-modal-description">
         {error && (
           <Alert 
             severity="error" 
+            role="alert"
             sx={{ 
               mt: 2,
               '& .MuiAlert-message': {
@@ -227,7 +242,13 @@ const AuthModal = ({ open, onClose }: AuthModalProps) => {
 
         {authTab === 0 ? (
           // Login Form
-          <Box component="form" onSubmit={handleLogin} sx={{ mt: 3 }}>
+          <Box 
+            component="form" 
+            onSubmit={handleLogin} 
+            sx={{ mt: 3 }}
+            role="form"
+            aria-label="Login form"
+          >
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField
@@ -241,6 +262,8 @@ const AuthModal = ({ open, onClose }: AuthModalProps) => {
                   required
                   error={error === 'No account found with this email address'}
                   helperText={error === 'No account found with this email address' ? 'Please check your email or sign up' : ''}
+                  aria-invalid={error === 'No account found with this email address'}
+                  aria-describedby={error === 'No account found with this email address' ? 'email-error' : undefined}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -255,6 +278,8 @@ const AuthModal = ({ open, onClose }: AuthModalProps) => {
                   required
                   error={error === 'Incorrect password'}
                   helperText={error === 'Incorrect password' ? 'Please check your password' : ''}
+                  aria-invalid={error === 'Incorrect password'}
+                  aria-describedby={error === 'Incorrect password' ? 'password-error' : undefined}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -264,6 +289,7 @@ const AuthModal = ({ open, onClose }: AuthModalProps) => {
                   fullWidth
                   size="large"
                   disabled={isLoading}
+                  aria-label={isLoading ? 'Logging in...' : 'Login'}
                   sx={{ 
                     backgroundColor: '#e65100',
                     '&:hover': { backgroundColor: '#f57c00' },
@@ -276,7 +302,13 @@ const AuthModal = ({ open, onClose }: AuthModalProps) => {
           </Box>
         ) : (
           // Sign Up Form
-          <Box component="form" onSubmit={handleRegister} sx={{ mt: 3 }}>
+          <Box 
+            component="form" 
+            onSubmit={handleRegister} 
+            sx={{ mt: 3 }}
+            role="form"
+            aria-label="Sign up form"
+          >
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField

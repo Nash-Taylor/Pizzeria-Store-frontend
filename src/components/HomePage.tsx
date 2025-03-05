@@ -1,7 +1,7 @@
 import { Box, Container, Typography, Button, Grid, Paper, useTheme, IconButton } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import NavigationBar from './NavigationBar';
 import AuthModal from './AuthModal';
 import pizzaHero from '../assets/pizza-hero.jpg';
@@ -39,15 +39,15 @@ const FeatureCard = styled(Paper)(({ theme }) => ({
   },
 }));
 
-const HomePage = () => {
+interface HomePageProps {
+  activeSection: string;
+}
+
+const HomePage: React.FC<HomePageProps> = ({ activeSection }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const { isAuthenticated } = useAuth();
-
-  const handleBuildPizza = () => {
-    navigate('/builder');
-  };
 
   const handleSectionChange = (section: string) => {
     console.log('Current section:', section);
@@ -61,6 +61,10 @@ const HomePage = () => {
 
   const handleCloseAuthModal = () => {
     setIsAuthModalOpen(false);
+  };
+
+  const handleBuildPizza = () => {
+    navigate('/builder');
   };
 
   return (

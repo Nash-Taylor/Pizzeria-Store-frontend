@@ -46,10 +46,17 @@ export const apiService = {
   register: (userData: any) => 
     api.post('/auth/register', userData),
 
+  getCurrentUser: () => 
+    api.get('/auth/me'),
+
   // Existing endpoints
   getAllIngredients: () => 
     api.get<Ingredient[]>('/ingredients'),
   
   validateSelection: (ingredientIds: number[]) => 
     api.post<ValidationResponse>('/ingredients/validate', { ingredientIds }),
+
+  getOrders: () => {
+    return api.get('/orders');
+  },
 }; 

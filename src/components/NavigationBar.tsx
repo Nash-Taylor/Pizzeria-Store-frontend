@@ -1,7 +1,11 @@
-import { AppBar, Toolbar, Button, Box, useScrollTrigger, useTheme, useMediaQuery, Menu, MenuItem, Typography } from '@mui/material';
+import { AppBar, Toolbar, Button, Box, useScrollTrigger, useTheme, useMediaQuery, Menu, MenuItem, Typography, Badge, IconButton } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
+import { useNavigate } from 'react-router-dom';
 import AccountCircle from '@mui/icons-material/AccountCircle';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import HistoryIcon from '@mui/icons-material/History';
 
 interface NavigationBarProps {
   onSectionChange: (section: string) => void;
@@ -14,6 +18,8 @@ const NavigationBar = ({ onSectionChange, onAuthClick }: NavigationBarProps) => 
   const [activeSection, setActiveSection] = useState('home');
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const { isAuthenticated, user, logout } = useAuth();
+  const { totalItems } = useCart();
+  const navigate = useNavigate();
   
   const trigger = useScrollTrigger({
     disableHysteresis: true,
@@ -69,51 +75,127 @@ const NavigationBar = ({ onSectionChange, onAuthClick }: NavigationBarProps) => 
   };
 
   return (
-    <AppBar 
-      position="fixed" 
-      sx={{ 
-        backgroundColor: trigger ? 'rgba(0, 0, 0, 0.9)' : 'transparent',
-        boxShadow: trigger ? 1 : 0,
-        transition: 'all 0.3s ease-in-out',
-      }}
-    >
-      <Toolbar>
-        <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', gap: isMobile ? 1 : 2 }}>
-          {sections.map((section) => (
-            <Button
-              key={section.id}
-              color="inherit"
-              onClick={() => scrollToSection(section.id)}
-              sx={{
-                position: 'relative',
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  bottom: 0,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: activeSection === section.id ? '100%' : '0%',
-                  height: '2px',
-                  backgroundColor: '#e65100',
-                  transition: 'width 0.3s ease-in-out',
-                },
-                '&:hover::after': {
-                  width: '100%',
-                },
-                color: activeSection === section.id ? '#e65100' : 'white',
-                fontWeight: activeSection === section.id ? 600 : 400,
-                fontSize: isMobile ? '0.8rem' : '1rem',
-              }}
-            >
-              {section.label}
-            </Button>
-          ))}
-          {isAuthenticated ? (
-            <>
+    <>
+      <AppBar 
+        position="fixed" 
+        sx={{ 
+          backgroundColor: trigger ? 'rgba(0, 0, 0, 0.9)' : 'transparent',
+          boxShadow: trigger ? 1 : 0,
+          transition: 'all 0.3s ease-in-out',
+        }}
+      >
+        <Toolbar>
+          <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', gap: isMobile ? 1 : 2 }}>
+            {sections.map((section) => (
+              <Button
+                key={section.id}
+                color="inherit"
+                onClick={() => scrollToSection(section.id)}
+                sx={{
+                  position: 'relative',
+                  '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    bottom: 0,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: activeSection === section.id ? '100%' : '0%',
+                    height: '2px',
+                    backgroundColor: '#e65100',
+                    transition: 'width 0.3s ease-in-out',
+                  },
+                  '&:hover::after': {
+                    width: '100%',
+                  },
+                  color: activeSection === section.id ? '#e65100' : 'white',
+                  fontWeight: activeSection === section.id ? 600 : 400,
+                  fontSize: isMobile ? '0.8rem' : '1rem',
+                }}
+              >
+                {section.label}
+              </Button>
+            ))}
+            {isAuthenticated ? (
+              <>
+                <IconButton
+                  color="inherit"
+                  onClick={() => navigate('/cart')}
+                  sx={{ ml: 2 }}
+                >
+                  <Badge badgeContent={totalItems} color="error">
+                    <ShoppingCartIcon />
+                  </Badge>
+                </IconButton>
+                <IconButton
+                  color="inherit"
+                  onClick={() => navigate('/orders')}
+                  sx={{ ml: 1 }}
+                >
+                  <HistoryIcon />
+                </IconButton>
+                <Button
+                  color="inherit"
+                  onClick={handleMenu}
+                  startIcon={<AccountCircle />}
+                  sx={{
+                    position: 'relative',
+                    '&::after': {
+                      content: '""',
+                      position: 'absolute',
+                      bottom: 0,
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      width: '0%',
+                      height: '2px',
+                      backgroundColor: '#e65100',
+                      transition: 'width 0.3s ease-in-out',
+                    },
+                    '&:hover::after': {
+                      width: '100%',
+                    },
+                    color: 'white',
+                    fontWeight: 400,
+                    fontSize: isMobile ? '0.8rem' : '1rem',
+                  }}
+                >
+                  {user?.username}
+                </Button>
+                <Menu
+                  anchorEl={anchorEl}
+                  open={Boolean(anchorEl)}
+                  onClose={handleClose}
+                  PaperProps={{
+                    sx: {
+                      mt: 1.5,
+                      backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                      color: 'white',
+                      '& .MuiMenuItem-root': {
+                        color: 'white',
+                        '&:hover': {
+                          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        },
+                      },
+                    },
+                  }}
+                >
+                  <MenuItem onClick={handleClose}>
+                    <Typography variant="body2">Email: {user?.email}</Typography>
+                  </MenuItem>
+                  <MenuItem onClick={handleClose}>
+                    <Typography variant="body2">Phone: {user?.phone}</Typography>
+                  </MenuItem>
+                  <MenuItem onClick={handleClose}>
+                    <Typography variant="body2">Address: {user?.address}</Typography>
+                  </MenuItem>
+                  <MenuItem onClick={handleLogout}>
+                    <Typography variant="body2" color="error">Logout</Typography>
+                  </MenuItem>
+                </Menu>
+              </>
+            ) : (
               <Button
                 color="inherit"
-                onClick={handleMenu}
-                startIcon={<AccountCircle />}
+                onClick={onAuthClick}
                 sx={{
                   position: 'relative',
                   '&::after': {
@@ -135,71 +217,13 @@ const NavigationBar = ({ onSectionChange, onAuthClick }: NavigationBarProps) => 
                   fontSize: isMobile ? '0.8rem' : '1rem',
                 }}
               >
-                {user?.username}
+                Login/Signup
               </Button>
-              <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleClose}
-                PaperProps={{
-                  sx: {
-                    mt: 1.5,
-                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                    color: 'white',
-                    '& .MuiMenuItem-root': {
-                      color: 'white',
-                      '&:hover': {
-                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                      },
-                    },
-                  },
-                }}
-              >
-                <MenuItem onClick={handleClose}>
-                  <Typography variant="body2">Email: {user?.email}</Typography>
-                </MenuItem>
-                <MenuItem onClick={handleClose}>
-                  <Typography variant="body2">Phone: {user?.phone}</Typography>
-                </MenuItem>
-                <MenuItem onClick={handleClose}>
-                  <Typography variant="body2">Address: {user?.address}</Typography>
-                </MenuItem>
-                <MenuItem onClick={handleLogout}>
-                  <Typography variant="body2" color="error">Logout</Typography>
-                </MenuItem>
-              </Menu>
-            </>
-          ) : (
-            <Button
-              color="inherit"
-              onClick={onAuthClick}
-              sx={{
-                position: 'relative',
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  bottom: 0,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: '0%',
-                  height: '2px',
-                  backgroundColor: '#e65100',
-                  transition: 'width 0.3s ease-in-out',
-                },
-                '&:hover::after': {
-                  width: '100%',
-                },
-                color: 'white',
-                fontWeight: 400,
-                fontSize: isMobile ? '0.8rem' : '1rem',
-              }}
-            >
-              Login/Signup
-            </Button>
-          )}
-        </Box>
-      </Toolbar>
-    </AppBar>
+            )}
+          </Box>
+        </Toolbar>
+      </AppBar>
+    </>
   );
 };
 

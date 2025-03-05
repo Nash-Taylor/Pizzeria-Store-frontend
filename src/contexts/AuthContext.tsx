@@ -36,13 +36,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchUserDetails = async (token: string) => {
+    try {
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      const response = await apiService.getCurrentUser();
+      setUser(response.data);
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      // If there's an error, clear the invalid token
+      localStorage.removeItem('auth_token');
+      delete api.defaults.headers.common['Authorization'];
+      setUser(null);
+      setIsAuthenticated(false);
+    }
+  };
+
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
     if (token) {
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      setIsAuthenticated(true);
+      fetchUserDetails(token);
+    } else {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
   const login = async (email: string, password: string) => {

@@ -1,6 +1,9 @@
 import React from 'react';
 import { Card, CardContent, CardMedia, Typography, Grid, Box } from '@mui/material';
 import { Ingredient } from '../types/types';
+import smallThinCrust from '../assets/smallthincrust.jpg';
+import mediumThinCrust from '../assets/mediumthincrust.jpg';
+import largeThinCrust from '../assets/largethincrust.jpg';
 
 interface Props {
   crusts: Ingredient[];
@@ -19,13 +22,27 @@ const CrustSelection: React.FC<Props> = ({ crusts, selectedCrust, onSelect }) =>
     return acc;
   }, {} as Record<string, Ingredient[]>);
 
-  // Helper function to get image URL based on crust type
+  // Helper function to get image URL based on crust type and size
   const getCrustImage = (name: string) => {
-    const type = name.toLowerCase();
-    if (type.includes('thin')) return '/crusts/thin-crust.jpg';
-    if (type.includes('classic')) return '/crusts/classic-crust.jpg';
-    if (type.includes('cheese')) return '/crusts/cheese-burst-crust.jpg';
+    const size = name.split(' ')[0].toLowerCase();
+    if (size === 'small' && name.toLowerCase().includes('thin')) return smallThinCrust;
+    if (size === 'medium' && name.toLowerCase().includes('thin')) return mediumThinCrust;
+    if (size === 'large' && name.toLowerCase().includes('thin')) return largeThinCrust;
     return '/crusts/default-crust.jpg';
+  };
+
+  // Helper function to get size description
+  const getSizeDescription = (size: string) => {
+    switch (size.toLowerCase()) {
+      case 'small':
+        return 'Perfect for 1 person • 7-inch size • 4 pieces';
+      case 'medium':
+        return 'Perfect for 2-3 people • 10-inch size • 6 pieces';
+      case 'large':
+        return 'Perfect for 3-4 people • 12-inch size • 8 pieces';
+      default:
+        return 'Our signature dough with perfect thickness';
+    }
   };
 
   return (
@@ -101,7 +118,7 @@ const CrustSelection: React.FC<Props> = ({ crusts, selectedCrust, onSelect }) =>
                       </Typography>
                     </Box>
                     <Typography variant="body2" color="text.secondary">
-                      Perfect for {type.toLowerCase()} includes {type === 'Cheese Burst' ? 'extra cheese in the crust' : 'our signature dough'}
+                      {getSizeDescription(crust.name.split(' ')[0])}
                     </Typography>
                   </CardContent>
                 </Card>

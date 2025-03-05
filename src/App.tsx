@@ -1,65 +1,97 @@
-import { CssBaseline, ThemeProvider, createTheme } from '@mui/material'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import PizzaBuilder from './components/PizzaBuilder'
-import HomePage from './components/HomePage'
-import { AuthProvider } from './contexts/AuthContext'
+import React, { useState } from 'react';
+import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import NavigationBar from './components/NavigationBar';
+import HomePage from './components/HomePage';
+import PizzaBuilder from './components/PizzaBuilder';
+import CartPage from './components/CartPage';
+import OrdersPage from './components/OrdersPage';
+import AuthModal from './components/AuthModal';
+import { AuthProvider } from './contexts/AuthContext';
+import { CartProvider } from './contexts/CartContext';
 
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#e65100',
+      main: '#1976d2',
     },
     secondary: {
-      main: '#f57c00',
-    },
-    background: {
-      default: '#f5f5f5',
-    },
-  },
-  typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    h1: {
-      fontWeight: 700,
-    },
-    h3: {
-      fontWeight: 600,
-    },
-    h5: {
-      fontWeight: 500,
+      main: '#e65100',
     },
   },
   components: {
     MuiCssBaseline: {
       styleOverrides: {
+        html: {
+          width: '100%',
+          height: '100%',
+        },
         body: {
+          width: '100%',
+          minHeight: '100%',
           margin: 0,
           padding: 0,
           overflowX: 'hidden',
         },
         '#root': {
-          minHeight: '100vh',
-          width: '100vw',
-          overflowX: 'hidden',
+          width: '100%',
+          minHeight: '100%',
+          display: 'flex',
+          flexDirection: 'column',
         },
       },
     },
   },
 });
 
-function App() {
+const App: React.FC = () => {
+  const [activeSection, setActiveSection] = useState('home');
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/builder" element={<PizzaBuilder />} />
-          </Routes>
-        </Router>
+        <CartProvider>
+          <Router>
+            <Routes>
+              <Route 
+                path="/" 
+                element={
+                  <>
+                    <NavigationBar
+                      onSectionChange={setActiveSection}
+                      onAuthClick={() => setShowAuthModal(true)}
+                    />
+                    <HomePage
+                      activeSection={activeSection}
+                    />
+                  </>
+                } 
+              />
+              <Route 
+                path="/builder" 
+                element={<PizzaBuilder />} 
+              />
+              <Route 
+                path="/cart" 
+                element={<CartPage />} 
+              />
+              <Route 
+                path="/orders" 
+                element={<OrdersPage />} 
+              />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+            <AuthModal
+              open={showAuthModal}
+              onClose={() => setShowAuthModal(false)}
+            />
+          </Router>
+        </CartProvider>
       </AuthProvider>
     </ThemeProvider>
-  )
-}
+  );
+};
 
-export default App
+export default App;
