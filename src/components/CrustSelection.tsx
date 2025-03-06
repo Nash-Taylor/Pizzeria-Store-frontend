@@ -25,9 +25,9 @@ const CrustSelection: React.FC<Props> = ({ crusts, selectedCrust, onSelect }) =>
   // Helper function to get image URL based on crust type and size
   const getCrustImage = (name: string) => {
     const size = name.split(' ')[0].toLowerCase();
-    if (size === 'small' && name.toLowerCase().includes('thin')) return smallThinCrust;
-    if (size === 'medium' && name.toLowerCase().includes('thin')) return mediumThinCrust;
-    if (size === 'large' && name.toLowerCase().includes('thin')) return largeThinCrust;
+    if (size === 'small') return smallThinCrust;
+    if (size === 'medium') return mediumThinCrust;
+    if (size === 'large') return largeThinCrust;
     return '/crusts/default-crust.jpg';
   };
 

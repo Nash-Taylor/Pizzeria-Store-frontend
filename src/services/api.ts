@@ -38,6 +38,14 @@ api.interceptors.response.use(
   }
 );
 
+interface CartItemData {
+  pizzaId: string;
+  crustId: number;
+  sauceIds: number[];
+  toppingIds: number[];
+  quantity: number;
+}
+
 export const apiService = {
   // Auth endpoints
   login: (email: string, password: string) => 
@@ -56,7 +64,55 @@ export const apiService = {
   validateSelection: (ingredientIds: number[]) => 
     api.post<ValidationResponse>('/ingredients/validate', { ingredientIds }),
 
-  getOrders: () => {
-    return api.get('/orders');
+  getOrders: async () => {
+    try {
+      console.log('Fetching orders...');
+      const response = await api.get('/orders');
+      console.log('Orders response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      throw error;
+    }
+  },
+
+  // Cart methods
+  getCartItems: async () => {
+    const response = await api.get('/cart');
+    return response;
+  },
+
+  addCartItem: async (data: CartItemData) => {
+    const response = await api.post('/cart', data);
+    return response;
+  },
+
+  removeCartItem: async (pizzaId: string) => {
+    const response = await api.delete(`/cart/${pizzaId}`);
+    return response;
+  },
+
+  updateCartItemQuantity: async (pizzaId: string, quantity: number) => {
+    const response = await api.put(`/cart/${pizzaId}`, { quantity });
+    return response;
+  },
+
+  clearCart: async () => {
+    const response = await api.delete('/cart');
+    return response;
+  },
+
+  // Order endpoints
+  createOrder: (data: { orderId: string; cartItemId: number; ingredientId: number }) => {
+    console.log('Creating order with data:', data);
+    return api.post('/orders', data)
+      .then(response => {
+        console.log('Order creation response:', response.data);
+        return response;
+      })
+      .catch(error => {
+        console.error('Order creation error:', error.response?.data || error.message);
+        throw error;
+      });
   },
 }; 

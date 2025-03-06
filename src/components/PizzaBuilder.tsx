@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
 import {
   Container,
   Paper,
@@ -31,6 +33,8 @@ const steps = ['Choose Crust', 'Choose Sauce', 'Choose Toppings'];
 
 const PizzaBuilder: React.FC = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { addPizza, showLoginPrompt, setShowLoginPrompt } = useCart();
   const [activeStep, setActiveStep] = useState(0);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,10 +98,21 @@ const PizzaBuilder: React.FC = () => {
   const handleNext = async () => {
     if (activeStep === steps.length - 1) {
       const isValid = await validateSelection();
-      if (isValid) {
-        // Handle order submission
-        console.log('Order validated:', selection);
-        setOrderSuccess(true);
+      if (isValid && selection.crust) {
+        // Add complete pizza to cart
+        await addPizza(
+          selection.crust,
+          selection.sauce,
+          selection.toppings
+        );
+        
+        // Only show success message and redirect if user is authenticated
+        if (isAuthenticated) {
+          setOrderSuccess(true);
+          setTimeout(() => {
+            navigate('/cart');
+          }, 2000);
+        }
       }
     } else {
       setActiveStep((prev) => prev + 1);
@@ -290,7 +305,7 @@ const PizzaBuilder: React.FC = () => {
                 onClick={handleNext}
                 disabled={!isStepValid()}
               >
-                {activeStep === steps.length - 1 ? 'Place Order' : 'Next'}
+                {activeStep === steps.length - 1 ? 'Add to Cart' : 'Next'}
               </Button>
             </Box>
           </>
@@ -333,6 +348,36 @@ const PizzaBuilder: React.FC = () => {
           </DialogActions>
         </Dialog>
 
+        {/* Login Required Dialog */}
+        <Dialog
+          open={showLoginPrompt}
+          onClose={() => setShowLoginPrompt(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Login Required</DialogTitle>
+          <DialogContent>
+            <Typography variant="body1">
+              Please log in or create an account to add items to your cart.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowLoginPrompt(false)} color="primary">
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                setShowLoginPrompt(false);
+                navigate('/');
+              }} 
+              variant="contained" 
+              color="primary"
+            >
+              Go to Login
+            </Button>
+          </DialogActions>
+        </Dialog>
+
         {/* Success Dialog */}
         <Dialog
           open={orderSuccess}
@@ -340,10 +385,10 @@ const PizzaBuilder: React.FC = () => {
           maxWidth="sm"
           fullWidth
         >
-          <DialogTitle>Order Placed Successfully!</DialogTitle>
+          <DialogTitle>Added to Cart!</DialogTitle>
           <DialogContent>
             <Typography variant="body1">
-              Your pizza order has been placed successfully. Thank you for choosing La Pizzeria Club!
+              Your pizza has been added to your cart. Redirecting to cart...
             </Typography>
           </DialogContent>
           <DialogActions>

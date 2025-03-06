@@ -7,8 +7,9 @@ import PizzaBuilder from './components/PizzaBuilder';
 import CartPage from './components/CartPage';
 import OrdersPage from './components/OrdersPage';
 import AuthModal from './components/AuthModal';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
+import { OrderProvider } from './contexts/OrderContext';
 
 const theme = createTheme({
   palette: {
@@ -44,50 +45,59 @@ const theme = createTheme({
   },
 });
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   const [activeSection, setActiveSection] = useState('home');
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const { showAuthModal } = useAuth();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
+  return (
+    <Router>
+      <Routes>
+        <Route 
+          path="/" 
+          element={
+            <>
+              <NavigationBar
+                onSectionChange={setActiveSection}
+                onAuthClick={() => setIsAuthModalOpen(true)}
+              />
+              <HomePage
+                activeSection={activeSection}
+              />
+            </>
+          } 
+        />
+        <Route 
+          path="/builder" 
+          element={<PizzaBuilder />} 
+        />
+        <Route 
+          path="/cart" 
+          element={<CartPage />} 
+        />
+        <Route 
+          path="/orders" 
+          element={<OrdersPage />} 
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <AuthModal
+        open={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
+    </Router>
+  );
+};
+
+const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
         <CartProvider>
-          <Router>
-            <Routes>
-              <Route 
-                path="/" 
-                element={
-                  <>
-                    <NavigationBar
-                      onSectionChange={setActiveSection}
-                      onAuthClick={() => setShowAuthModal(true)}
-                    />
-                    <HomePage
-                      activeSection={activeSection}
-                    />
-                  </>
-                } 
-              />
-              <Route 
-                path="/builder" 
-                element={<PizzaBuilder />} 
-              />
-              <Route 
-                path="/cart" 
-                element={<CartPage />} 
-              />
-              <Route 
-                path="/orders" 
-                element={<OrdersPage />} 
-              />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-            <AuthModal
-              open={showAuthModal}
-              onClose={() => setShowAuthModal(false)}
-            />
-          </Router>
+          <OrderProvider>
+            <AppContent />
+          </OrderProvider>
         </CartProvider>
       </AuthProvider>
     </ThemeProvider>
